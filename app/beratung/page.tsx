@@ -94,66 +94,66 @@ export default function BeratungPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Erstelle E-Mail-Body
-    let body = `BERATUNGSGUTSCHEIN ANFRAGE\n\n`;
-    body += `=== KONTAKTDATEN ===\n`;
-    body += `Name: ${name}\n`;
-    body += `Adresse: ${strasse}, ${plzOrt}\n`;
-    body += `Telefon: ${telefon}\n`;
-    body += `E-Mail: ${email}\n\n`;
-    
-    body += `=== BERATUNGSOBJEKT ===\n`;
-    if (gleicheAdresse) {
-      body += `Identisch mit Kundenadresse\n\n`;
-    } else {
-      body += `Adresse: ${objektStrasse}, ${objektPlzOrt}\n\n`;
-    }
-    
-    body += `=== BESTEHENDE HEIZUNG ===\n`;
-    body += `Heizungstyp: ${heizungsTyp}\n`;
-    if (heizungsTyp === 'Öl' && verbrauchOel) body += `Ölverbrauch: ${verbrauchOel} Liter/Jahr\n`;
-    if (heizungsTyp === 'Gas' && verbrauchGasM3) body += `Gasverbrauch: ${verbrauchGasM3} m³/Jahr\n`;
-    if (heizungsTyp === 'Gas' && verbrauchGasLiter) body += `Flüssiggasverbrauch: ${verbrauchGasLiter} Liter/Jahr\n`;
-    if (heizungsTyp === 'Nachtspeicher' && verbrauchNachtspeicher) body += `Stromverbrauch: ${verbrauchNachtspeicher} kWh/Jahr\n`;
-    if (heizungsTyp === 'Holz') {
-      if (verbrauchHolz) body += `Holzverbrauch: ${verbrauchHolz} Ster/Jahr\n`;
-      if (holzArt) body += `Holzart: ${holzArt}\n`;
-    }
-    if (heizungsTyp === 'Pellets' && verbrauchPellets) body += `Pelletverbrauch: ${verbrauchPellets} Tonnen/Jahr\n`;
-    body += `\n`;
-    
-    body += `=== HAUSDATEN ===\n`;
-    body += `Bewohner: ${personenAnzahl}\n`;
-    body += `Wohnfläche: ${wohnflaeche} m²\n`;
-    body += `Baujahr: ${baujahr}\n\n`;
-    
-    body += `=== INTERESSE AN ===\n`;
-    body += neuesSystem.join(', ') + '\n\n';
-    
-    body += `=== PHOTOVOLTAIK ===\n`;
-    body += `PV vorhanden: ${pvStatus}\n`;
-    if (pvStatus === 'Ja' && stromspeicherVorhanden) body += `Stromspeicher: ${stromspeicherVorhanden}\n`;
-    if (pvStatus === 'Ja' && eegAblauf) body += `EEG-Vergütung endet: ${eegAblauf}\n`;
-    if (pvStatus === 'Nein' && pvInteresse) body += `Interesse an PV: ${pvInteresse}\n`;
-    body += `\n`;
-    
-    body += `=== E-MOBILITÄT ===\n`;
-    body += `E-Auto vorhanden: ${eAutoStatus}\n`;
-    if (wallboxInteresse) body += `Interesse an Wallbox: ${wallboxInteresse}\n`;
-    body += `\n`;
-    
-    body += `=== KONTAKTPRÄFERENZ ===\n`;
-    body += `Bevorzugt: ${kontaktArt}\n`;
-    if (erreichbarkeit) body += `Erreichbarkeit: ${erreichbarkeit}\n`;
+    setIsSubmitting(true);
+    setError('');
 
-    const subject = `Beratungsgutschein Anfrage - ${name}`;
-    const mailtoLink = `mailto:info@haustechnik-bielmeier.de?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    window.location.href = mailtoLink;
+    const formData = {
+      name,
+      strasse,
+      plzOrt,
+      email,
+      telefon,
+      gleicheAdresse,
+      objektStrasse: gleicheAdresse ? strasse : objektStrasse,
+      objektPlzOrt: gleicheAdresse ? plzOrt : objektPlzOrt,
+      heizungsTyp,
+      verbrauchOel,
+      verbrauchGasM3,
+      verbrauchGasLiter,
+      verbrauchNachtspeicher,
+      verbrauchHolz,
+      holzArt,
+      verbrauchPellets,
+      personenAnzahl,
+      wohnflaeche,
+      baujahr,
+      neuesSystem,
+      pvStatus,
+      stromspeicherVorhanden,
+      eegAblauf,
+      pvInteresse,
+      eAutoStatus,
+      wallboxInteresse,
+      kontaktArt,
+      erreichbarkeit,
+    };
+
+    // Mailto-Fallback für statischen Export
+    const subject = encodeURIComponent('Beratungsgutschein-Anfrage von der Website');
+    const bodyParts = [
+      `Kontaktdaten:`,
+      `Name: ${formData.vorname} ${formData.nachname}`,
+      `E-Mail: ${formData.kontaktEmail}`,
+      `Telefon: ${formData.kontaktTelefon || 'Nicht angegeben'}`,
+      ``,
+      `Adresse: ${formData.objektStrasse || ''}, ${formData.objektPlz || ''} ${formData.objektOrt || ''}`,
+      ``,
+      `Heizungstyp: ${formData.heizungsTyp || 'Nicht angegeben'}`,
+      `Baujahr Gebäude: ${formData.baujahrGebaeude || 'Nicht angegeben'}`,
+      `Wohnfläche: ${formData.wohnflaeche || 'Nicht angegeben'} m²`,
+      `Bewohner: ${formData.bewohnerAnzahl || 'Nicht angegeben'}`,
+      ``,
+      `Gewünschtes System: ${formData.neuesSystem || 'Nicht angegeben'}`,
+      `PV-Anlage: ${formData.pvAnlage || 'Nicht angegeben'}`,
+      `E-Auto: ${formData.eAutoStatus || 'Nicht angegeben'}`,
+      `Kontaktart: ${formData.kontaktArt || 'Nicht angegeben'}`,
+    ];
+    const body = encodeURIComponent(bodyParts.join('\n'));
+    window.location.href = `mailto:info@bielmeier-haustechnik.de?subject=${subject}&body=${body}`;
     setIsSuccess(true);
+    setIsSubmitting(false);
   };
 
   if (isSuccess) {
@@ -165,15 +165,9 @@ export default function BeratungPage() {
               <CheckCircle className="w-14 h-14 text-brand-green" />
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-6">Vielen Dank!</h1>
-            <p className="text-2xl text-gray-600 leading-relaxed mb-6">
-              Ihr E-Mail-Programm sollte sich geöffnet haben.<br />
-              Bitte senden Sie die E-Mail ab, um Ihre Anfrage zu übermitteln.
-            </p>
-            <p className="text-lg text-gray-500">
-              Falls sich kein E-Mail-Programm geöffnet hat, senden Sie Ihre Anfrage bitte direkt an:<br/>
-              <a href="mailto:info@haustechnik-bielmeier.de" className="text-brand-green font-semibold">
-                info@haustechnik-bielmeier.de
-              </a>
+            <p className="text-2xl text-gray-600 leading-relaxed">
+              Ihre Beratungsanfrage wurde erfolgreich übermittelt.<br />
+              Wir werden uns in Kürze bei Ihnen melden.
             </p>
           </div>
         </div>

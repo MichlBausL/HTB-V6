@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/leistungen', label: 'Leistungen' },
   { href: '/spezialisierungen', label: 'Spezialisierungen' },
   { href: '/heizungsrechner', label: 'Heizungsrechner' },
+  { href: '/pv-rechner', label: 'PV-Rechner' },
   { href: '/ueber-uns', label: 'Über uns' },
   { href: '/kontakt', label: 'Kontakt' },
 ]

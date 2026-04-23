@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { Calculator } from 'lucide-react'
+import { Sun } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-export default function HeizungsrechnerPage() {
+export default function PvRechnerPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   const scriptLoadedRef = useRef(false)
 
@@ -12,8 +12,8 @@ export default function HeizungsrechnerPage() {
     if (scriptLoadedRef.current) return
     scriptLoadedRef.current = true
 
-    const licenceCode = 'LL-1774529235015-6424-2-69234-CL'
-    const selector = '#meister1_LL-1774529235015-6424-2-69234-CL'
+    const licenceCode = 'LL-1774529252295-6424-64049-69579-CL'
+    const selector = '#meister1_LL-1774529252295-6424-64049-69579-CL'
 
     const initWidget = () => {
       if (typeof (window as any).Lokalleads !== 'undefined') {
@@ -21,7 +21,7 @@ export default function HeizungsrechnerPage() {
       }
     }
 
-    // Check if script is already loaded
+    // Check if script is already loaded (shared across rechner pages)
     const existingScript = document.querySelector(
       'script[src="https://offerio.meister1.com/init.js"]'
     ) as HTMLScriptElement | null
@@ -29,14 +29,12 @@ export default function HeizungsrechnerPage() {
     let script: HTMLScriptElement | null = null
 
     if (existingScript) {
-      // Script already in DOM
       if (typeof (window as any).Lokalleads !== 'undefined') {
         initWidget()
       } else {
         existingScript.addEventListener('load', initWidget)
       }
     } else {
-      // Load script fresh
       script = document.createElement('script')
       script.src = 'https://offerio.meister1.com/init.js'
       script.type = 'text/javascript'
@@ -46,8 +44,7 @@ export default function HeizungsrechnerPage() {
     }
 
     return () => {
-      // Do not remove the shared meister1 script on unmount to avoid
-      // breaking re-initialisation when navigating between rechner pages.
+      // Do not remove the shared meister1 script on unmount.
     }
   }, [])
 
@@ -64,21 +61,22 @@ export default function HeizungsrechnerPage() {
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-brand-green rounded-2xl flex items-center justify-center shadow-lg">
-                <Calculator className="w-8 h-8 text-white" />
+                <Sun className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-5xl md:text-6xl font-bold">
-                Heizungs<span className="text-brand-green">rechner</span>
+                PV-<span className="text-brand-green">Rechner</span>
               </h1>
             </div>
             <p className="text-xl text-gray-300 leading-relaxed">
-              Berechnen Sie in wenigen Schritten die optimale Heizungslösung für Ihr Zuhause.
-              Unser Heizungsrechner hilft Ihnen, die passende Technologie und die zu erwartenden Kosten zu ermitteln.
+              Berechnen Sie in wenigen Schritten Ihr individuelles Photovoltaik-Potenzial.
+              Unser PV-Rechner hilft Ihnen, die passende Anlagengröße, den möglichen Stromertrag
+              und Ihre Einsparungen zu ermitteln.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Heizungsrechner Widget */}
+      {/* PV-Rechner Widget */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -88,7 +86,7 @@ export default function HeizungsrechnerPage() {
             className="bg-white rounded-2xl shadow-xl p-6 md:p-10"
           >
             <div
-              id="meister1_LL-1774529235015-6424-2-69234-CL"
+              id="meister1_LL-1774529252295-6424-64049-69579-CL"
               ref={containerRef}
               className="min-h-[600px]"
             />

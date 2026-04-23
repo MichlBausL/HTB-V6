@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle, User, Mail, Phone, MessageSquare, FileText } from 'lucide-react'
+import { Send, CheckCircle, AlertCircle, User, Mail, Phone, MessageSquare, FileText } from 'lucide-react'
 
 interface FormData {
   name: string
@@ -20,11 +20,16 @@ export function ContactForm() {
     subject: '',
     message: '',
   })
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success'>('idle')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+    setErrorMessage('')
+
     const subject = encodeURIComponent(formData.subject || 'Kontaktanfrage von der Website')
     const body = encodeURIComponent(
       `Name: ${formData.name}\n` +
@@ -34,155 +39,192 @@ export function ContactForm() {
     )
     window.location.href = `mailto:info@haustechnik-bielmeier.de?subject=${subject}&body=${body}`
     setSubmitStatus('success')
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+    })
+    setIsSubmitting(false)
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  if (submitStatus === 'success') {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl shadow-xl p-8 text-center"
-      >
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-brand-green" />
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Vielen Dank!</h3>
-        <p className="text-gray-600 mb-4">
-          Ihr E-Mail-Programm sollte sich geöffnet haben. Bitte senden Sie die E-Mail ab.
-        </p>
-        <p className="text-sm text-gray-500">
-          Falls sich kein E-Mail-Programm geöffnet hat, senden Sie Ihre Anfrage direkt an:<br/>
-          <a href="mailto:info@haustechnik-bielmeier.de" className="text-brand-green font-semibold">
-            info@haustechnik-bielmeier.de
-          </a>
-        </p>
-        <button
-          onClick={() => setSubmitStatus('idle')}
-          className="mt-6 text-brand-green hover:underline"
-        >
-          Neue Nachricht senden
-        </button>
-      </motion.div>
-    )
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e?.target ?? {}
+    setFormData((prev) => ({ ...prev, [name ?? '']: value }))
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-2xl shadow-xl p-8"
-    >
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Nachricht <span className="text-brand-green">senden</span>
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            <User className="w-4 h-4" />
-            Name *
-          </label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Name */}
+      <div>
+        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+          Name *
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <User className="w-5 h-5 text-gray-400" />
+          </div>
           <input
             type="text"
+            id="name"
             name="name"
-            value={formData.name}
+            value={formData?.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
-            placeholder="Ihr Name"
+            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
+            placeholder="Ihr vollständiger Name"
           />
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Mail className="w-4 h-4" />
-              E-Mail *
-            </label>
+      {/* Email and Phone */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+            E-Mail *
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Mail className="w-5 h-5 text-gray-400" />
+            </div>
             <input
               type="email"
+              id="email"
               name="email"
-              value={formData.email}
+              value={formData?.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
               placeholder="ihre@email.de"
             />
           </div>
+        </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Phone className="w-4 h-4" />
-              Telefon
-            </label>
+        <div>
+          <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+            Telefon (optional)
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Phone className="w-5 h-5 text-gray-400" />
+            </div>
             <input
               type="tel"
+              id="phone"
               name="phone"
-              value={formData.phone}
+              value={formData?.phone}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
-              placeholder="Ihre Telefonnummer"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
+              placeholder="+49 ..."
             />
           </div>
         </div>
+      </div>
 
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            <FileText className="w-4 h-4" />
-            Betreff *
-          </label>
-          <select
+      {/* Subject */}
+      <div>
+        <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+          Betreff *
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <FileText className="w-5 h-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            id="subject"
             name="subject"
-            value={formData.subject}
+            value={formData?.subject}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
-          >
-            <option value="">Bitte wählen...</option>
-            <option value="Allgemeine Anfrage">Allgemeine Anfrage</option>
-            <option value="Heizungsberatung">Heizungsberatung</option>
-            <option value="Wärmepumpe">Wärmepumpe</option>
-            <option value="Photovoltaik">Photovoltaik</option>
-            <option value="Sanitär">Sanitär</option>
-            <option value="Wartung">Wartung</option>
-            <option value="Sonstiges">Sonstiges</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            <MessageSquare className="w-4 h-4" />
-            Nachricht *
-          </label>
-          <textarea
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            required
-            rows={5}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all resize-none"
-            placeholder="Wie können wir Ihnen helfen?"
+            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
+            placeholder="Worum geht es?"
           />
         </div>
+      </div>
 
+      {/* Message */}
+      <div>
+        <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+          Nachricht *
+        </label>
+        <div className="relative">
+          <div className="absolute top-3 left-0 pl-4 pointer-events-none">
+            <MessageSquare className="w-5 h-5 text-gray-400" />
+          </div>
+          <textarea
+            id="message"
+            name="message"
+            value={formData?.message}
+            onChange={handleChange}
+            required
+            rows={6}
+            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all resize-none"
+            placeholder="Beschreiben Sie Ihr Anliegen..."
+          />
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <div>
         <button
           type="submit"
-          className="w-full bg-brand-green hover:bg-brand-green-dark text-white font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+          disabled={isSubmitting}
+          className="w-full px-8 py-4 bg-brand-green text-white rounded-lg hover:bg-brand-green-dark transition-all font-semibold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
-          <Send className="w-5 h-5" />
-          Nachricht senden
+          {isSubmitting ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Wird gesendet...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-5 h-5" />
+              <span>Nachricht senden</span>
+            </>
+          )}
         </button>
+      </div>
 
-        <p className="text-sm text-gray-500 text-center">
-          Ihr E-Mail-Programm öffnet sich automatisch mit Ihrer Nachricht.
-        </p>
-      </form>
-    </motion.div>
+      {/* Success Message */}
+      {submitStatus === 'success' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3"
+        >
+          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-green-900">Vielen Dank für Ihre Nachricht!</h4>
+            <p className="text-green-700 text-sm">
+              Wir haben Ihre Anfrage erhalten und werden uns schnellstmöglich bei Ihnen melden.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Error Message */}
+      {submitStatus === 'error' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-green-50 border border-red-200 rounded-lg flex items-start space-x-3"
+        >
+          <AlertCircle className="w-6 h-6 text-brand-green flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-red-900">Fehler beim Senden</h4>
+            <p className="text-brand-green-dark text-sm">
+              {errorMessage || 'Bitte versuchen Sie es erneut oder kontaktieren Sie uns telefonisch.'}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Privacy Notice */}
+      <p className="text-xs text-gray-500 text-center">
+        Ihre Daten werden vertraulich behandelt und ausschließlich zur Bearbeitung Ihrer Anfrage verwendet.
+      </p>
+    </form>
   )
 }
